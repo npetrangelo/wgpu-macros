@@ -79,13 +79,13 @@ enum Attr {
 ///   tex_coords: [f32; 2],
 /// }
 /// ```
-#[proc_macro_derive(VertexLayout, attributes(layout))]
+#[proc_macro_derive(VertexLayout, attributes(layout, location))]
 pub fn vertex_layout(input: TokenStream) -> TokenStream {
   let input = parse_macro_input!(input as DeriveInput);
 
   let step_mode = input
     .attrs
-    .into_iter()
+    .iter()
     .find_map(|attr| {
       if *attr.path.get_ident().unwrap() == "layout" {
         match attr.parse_meta().unwrap() {
@@ -107,6 +107,24 @@ pub fn vertex_layout(input: TokenStream) -> TokenStream {
       }
     })
     .unwrap_or_else(|| format_ident!("Vertex"));
+
+  let location = input
+    .attrs
+    .iter()
+    .find_map(|attr| {
+      if *attr.path.get_ident().unwrap() == "location" {
+        match attr.parse_meta().unwrap() {
+          Meta::NameValue(nameValue) => match nameValue.lit {
+            Lit::Int(int) => Some(int.base10_parse::<u32>().unwrap()),
+            _ => panic!("Invalid value inner")
+          },
+          _ => panic!("Invalid value outer")
+        }
+      } else {
+        None
+      }
+    })
+    .unwrap_or(0);
 
   let name = input.ident;
 
@@ -215,7 +233,7 @@ pub fn vertex_layout(input: TokenStream) -> TokenStream {
       }
     };
 
-    let n = n as u32;
+    let n = n as u32 + location;
     quote!(#n => #ident)
   });
 

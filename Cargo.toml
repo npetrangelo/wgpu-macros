@@ -9,4 +9,4 @@ repository = "https://github.com/crowlKats/wgpu-macros"
 
 [dependencies]
 wgpu-procs = { path = "wgpu-procs" }
-wgpu = "24.0.1"
+wgpu = "28.0.0"
